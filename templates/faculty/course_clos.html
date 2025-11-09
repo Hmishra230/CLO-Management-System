@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Manage CLOs - {{ course.course_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 px-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('faculty_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active">CLOs - {{ course.course_code }}</li>
+        </ol>
+    </nav>
+
+    <!-- Course Info -->
+    <div class="card mb-4" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(5, 150, 105, 0.15)); border: none;">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-2">{{ course.course_name }}</h3>
+                    <p class="text-muted mb-0">
+                        <span class="badge bg-success me-2">{{ course.course_code }}</span>
+                        Semester {{ course.semester }} | {{ course.credit_hours }} Credits
+                    </p>
+                </div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCLOModal">
+                    <i class="bi bi-plus-circle"></i> Add CLO
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLOs Management -->
+    <div class="row">
+        <!-- CLOs List -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-list-check"></i> Course Learning Outcomes</h5>
+                </div>
+                <div class="card-body">
+                    {% if clos %}
+                        <div class="accordion" id="closAccordion">
+                            {% for clo in clos %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" 
+                                            type="button" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#clo{{ clo.clo_id }}">
+                                        <span class="badge bg-primary me-2">{{ clo.clo_code }}</span>
+                                        {{ clo.clo_description[:60] }}...
+                                    </button>
+                                </h2>
+                                <div id="clo{{ clo.clo_id }}" 
+                                     class="accordion-collapse collapse {% if loop.first %}show{% endif %}" 
+                                     data-bs-parent="#closAccordion">
+                                    <div class="accordion-body">
+                                        <p class="mb-3">{{ clo.clo_description }}</p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <small class="text-muted">
+                                                    Mapped to PLOs: 
+                                                    {% if clo.mapped_plos %}
+                                                        {% for plo in clo.mapped_plos %}
+                                                        <span class="badge bg-info">{{ plo.plo_code }}</span>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <span class="text-warning">Not mapped</span>
+                                                    {% endif %}
+                                                </small>
+                                            </div>
+                                            <div class="btn-group" role="group">
+                                                <button class="btn btn-sm btn-info" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#mapPLOModal{{ clo.clo_id }}">
+                                                    <i class="bi bi-diagram-3"></i> Map PLOs
+                                                </button>
+                                                <button class="btn btn-sm btn-warning" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#editCLOModal{{ clo.clo_id }}">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button onclick="deleteItem('clo', {{ clo.clo_id }})" 
+                                                        class="btn btn-sm btn-danger">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-5">
+                            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                            <p class="mt-3">No CLOs defined yet. Add course learning outcomes!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Info Sidebar -->
+        <div class="col-lg-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-info-circle"></i> CLO Statistics</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Total CLOs</span>
+                            <span class="badge bg-primary">{{ clos|length }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Mapped to PLOs</span>
+                            <span class="badge bg-success">{{ mapped_count or 0 }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>Assessments</span>
+                            <span class="badge bg-info">{{ assessment_count or 0 }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-lightbulb"></i> Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('faculty_assessments', course_id=course.course_id) }}" 
+                           class="btn btn-outline-primary">
+                            <i class="bi bi-clipboard-check"></i> Manage Assessments
+                        </a>
+                        <a href="{{ url_for('faculty_reports', course_id=course.course_id) }}" 
+                           class="btn btn-outline-success">
+                            <i class="bi bi-graph-up"></i> View Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add CLO Modal -->
+<div class="modal fade" id="addCLOModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Add Course Learning Outcome</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_clo', course_id=course.course_id) }}" class="needs-validation" novalidate>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">CLO Code *</label>
+                        <input type="text" class="form-control" name="clo_code" 
+                               placeholder="e.g., CLO1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">CLO Description *</label>
+                        <textarea class="form-control" name="clo_description" rows="4" 
+                                  placeholder="Describe what students should be able to do..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add CLO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

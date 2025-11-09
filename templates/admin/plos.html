@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Manage PLOs - {{ program.program_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 px-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('admin_programs') }}">Programs</a></li>
+            <li class="breadcrumb-item active">PLOs - {{ program.program_code }}</li>
+        </ol>
+    </nav>
+
+    <!-- Program Info Header -->
+    <div class="card mb-4" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.15)); border: none;">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-2">{{ program.program_name }}</h3>
+                    <p class="text-muted mb-0">
+                        <span class="badge bg-primary me-2">{{ program.program_code }}</span>
+                        {{ program.department }}
+                    </p>
+                </div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addPLOModal">
+                    <i class="bi bi-plus-circle"></i> Add PLO
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLOs List -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-list-check"></i> Program Learning Outcomes (PLOs)</h5>
+        </div>
+        <div class="card-body">
+            {% if plos %}
+                <div class="row g-3">
+                    {% for plo in plos %}
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-0">
+                                        <span class="badge bg-primary">{{ plo.plo_code }}</span>
+                                    </h5>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-warning" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editPLOModal{{ plo.plo_id }}">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button
+                                          class="btn btn-sm btn-danger delete-plo"
+                                          data-item-type="plo"
+                                          data-item-id="{{ plo.plo_id }}"
+                                          data-delete-url="{{ url_for('admin_programs') | tojson }}"
+                                          data-item-name="{{ plo.plo_name }}"
+                                          title="Delete PLO">
+                                          <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <p class="card-text text-muted">{{ plo.plo_description }}</p>
+                                {% if plo.mapped_clos %}
+                                <small class="text-success">
+                                    <i class="bi bi-link-45deg"></i> Mapped to {{ plo.mapped_clos }} CLOs
+                                </small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                    <p class="mt-3">No PLOs defined yet. Add learning outcomes for this program!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add PLO Modal -->
+<div class="modal fade" id="addPLOModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Add Program Learning Outcome</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_plo', program_id=program.program_id) }}" class="needs-validation" novalidate>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">PLO Code *</label>
+                        <input type="text" class="form-control" name="plo_code" 
+                               placeholder="e.g., PLO1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">PLO Description *</label>
+                        <textarea class="form-control" name="plo_description" rows="4" 
+                                  placeholder="Describe the program learning outcome..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add PLO</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

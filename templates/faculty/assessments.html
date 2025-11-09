@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Assessments - {{ course.course_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 px-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('faculty_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Assessments - {{ course.course_code }}</li>
+        </ol>
+    </nav>
+
+    <!-- Course Header -->
+    <div class="card mb-4" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(124, 58, 237, 0.15)); border: none;">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-2">{{ course.course_name }}</h3>
+                    <p class="text-muted mb-0">
+                        <span class="badge bg-success me-2">{{ course.course_code }}</span>
+                        Manage Assessment Tools
+                    </p>
+                </div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addAssessmentModal">
+                    <i class="bi bi-plus-circle"></i> Add Assessment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assessment Tools Grid -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-clipboard-check"></i> Assessment Tools</h5>
+        </div>
+        <div class="card-body">
+            {% if assessments %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Assessment Name</th>
+                                <th>Type</th>
+                                <th>Max Marks</th>
+                                <th>Mapped CLOs</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assessment in assessments %}
+                            <tr>
+                                <td><strong>{{ assessment.assessment_name }}</strong></td>
+                                <td>
+                                    <span class="badge bg-{% if assessment.assessment_type == 'quiz' %}info{% elif assessment.assessment_type == 'midterm' %}warning{% elif assessment.assessment_type == 'final' %}danger{% else %}primary{% endif %}">
+                                        {{ assessment.assessment_type|title }}
+                                    </span>
+                                </td>
+                                <td>{{ assessment.max_marks }}</td>
+                                <td>
+                                    {% if assessment.mapped_clos %}
+                                        {% for clo in assessment.mapped_clos %}
+                                        <span class="badge bg-primary">{{ clo.clo_code }}</span>
+                                        {% endfor %}
+                                    {% else %}
+                                        <span class="text-warning">Not mapped</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('map_assessment_clos', assessment_id=assessment.assessment_id) }}" 
+                                           class="btn btn-sm btn-info" title="Map to CLOs">
+                                            <i class="bi bi-diagram-3"></i>
+                                        </a>
+                                        <a href="{{ url_for('enter_scores', assessment_id=assessment.assessment_id) }}" 
+                                           class="btn btn-sm btn-success" title="Enter Scores">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-warning" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editAssessmentModal{{ assessment.assessment_id }}">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button onclick="deleteItem('assessment', {{ assessment.assessment_id }})" 
+                                                class="btn btn-sm btn-danger">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-clipboard-x" style="font-size: 3rem;"></i>
+                    <p class="mt-3">No assessments created yet. Add assessment tools!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Assessment Modal -->
+<div class="modal fade" id="addAssessmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Add Assessment Tool</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_assessment', course_id=course.course_id) }}" class="needs-validation" novalidate>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Assessment Name *</label>
+                        <input type="text" class="form-control" name="assessment_name" 
+                               placeholder="e.g., Quiz 1, Midterm Exam" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Assessment Type *</label>
+                        <select class="form-select" name="assessment_type" required>
+                            <option value="quiz">Quiz</option>
+                            <option value="assignment">Assignment</option>
+                            <option value="midterm">Midterm Exam</option>
+                            <option value="final">Final Exam</option>
+                            <option value="project">Project</option>
+                            <option value="lab">Lab Work</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Maximum Marks *</label>
+                        <input type="number" class="form-control" name="max_marks" 
+                               min="1" step="0.5" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Assessment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Programs{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 px-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-2">
+                <i class="bi bi-journal-bookmark-fill text-gradient"></i> Programs Management
+            </h2>
+            <p class="text-muted mb-0">Manage academic programs and their learning outcomes</p>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProgramModal">
+            <i class="bi bi-plus-circle"></i> Add Program
+        </button>
+    </div>
+
+    <!-- Programs Table -->
+    <div class="card">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5 class="mb-0"><i class="bi bi-list-ul"></i> All Programs</h5>
+                </div>
+                <div class="col-md-6">
+                    <input type="text" class="form-control" placeholder="Search programs..." 
+                           data-table-search="programs-table">
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="programs-table">
+                    <thead>
+                        <tr>
+                            <th>Program Code</th>
+                            <th>Program Name</th>
+                            <th>Department</th>
+                            <th>PLOs</th>
+                            <th>Courses</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if programs %}
+                            {% for program in programs %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-primary">{{ program.program_code }}</span>
+                                </td>
+                                <td><strong>{{ program.program_name }}</strong></td>
+                                <td>{{ program.department }}</td>
+                                <td>
+                                    <span class="badge bg-info">{{ program.plo_count or 0 }} PLOs</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success">{{ program.course_count or 0 }}</span>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a href="{{ url_for('program_plos', program_id=program.program_id) }}" 
+                                           class="btn btn-sm btn-info" title="Manage PLOs">
+                                            <i class="bi bi-list-ul"></i> PLOs
+                                        </a>
+                                        <button class="btn btn-sm btn-warning" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editProgramModal{{ program.program_id }}"
+                                                title="Edit Program">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button
+                                          class="btn btn-sm btn-danger delete-program"
+                                          data-item-id="{{ program.program_id }}"
+                                          data-item-name="{{ program.program_name }}"
+                                          data-delete-url="{{ url_for('admin_programs') | tojson }}"
+                                          title="Delete Program">
+                                          <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                                    <p class="mt-3">No programs found. Add your first program!</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Program Modal -->
+<div class="modal fade" id="addProgramModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Add New Program</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('add_program') }}" class="needs-validation" novalidate>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Program Code *</label>
+                            <input type="text" class="form-control" name="program_code" 
+                                   placeholder="e.g., BE-ECE" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Department *</label>
+                            <input type="text" class="form-control" name="department" 
+                                   placeholder="e.g., Computer Engineering" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Program Name *</label>
+                        <input type="text" class="form-control" name="program_name" 
+                               placeholder="e.g., B.E. in Electrical and Computer Engineering" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" name="description" rows="4" 
+                                  placeholder="Program description and objectives..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Add Program
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

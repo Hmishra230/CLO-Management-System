@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}CLO Reports - {{ course.course_name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 px-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('faculty_dashboard') }}">Dashboard</a></li>
+            <li class="breadcrumb-item active">Reports - {{ course.course_code }}</li>
+        </ol>
+    </nav>
+
+    <!-- Course Header -->
+    <div class="card mb-4" style="background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(8, 145, 178, 0.15)); border: none;">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3 class="mb-2">{{ course.course_name }}</h3>
+                    <p class="text-muted mb-0">
+                        <span class="badge bg-info me-2">{{ course.course_code }}</span>
+                        CLO Attainment Reports & Analytics
+                    </p>
+                </div>
+                <button onclick="exportToExcel({{ course.course_id }})" class="btn btn-success">
+                    <i class="bi bi-file-earmark-excel"></i> Export Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CLO Attainment Summary -->
+    <div class="row g-4 mb-4">
+        {% if clo_attainment %}
+            {% for clo in clo_attainment %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <span class="badge bg-primary">{{ clo.clo_code }}</span>
+                        </h5>
+                        <p class="card-text text-muted small">{{ clo.clo_description[:80] }}...</p>
+                        
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <small>Attainment Level</small>
+                                <small><strong>{{ clo.attainment_percentage|round(2) }}%</strong></small>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar bg-{{ 'success' if clo.attainment_percentage >= 75 else 'primary' if clo.attainment_percentage >= 60 else 'warning' if clo.attainment_percentage >= 50 else 'danger' }}" 
+                                     style="width: {{ clo.attainment_percentage }}%">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <span class="badge {% if clo.attainment_percentage >= 75 %}attainment-highly{% elif clo.attainment_percentage >= 60 %}attainment-attained{% elif clo.attainment_percentage >= 50 %}attainment-partially{% else %}attainment-not{% endif %}">
+                            {{ clo.attainment_level|title }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> No attainment data available yet. Enter assessment scores to calculate CLO attainment.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Detailed Attainment Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-table"></i> Detailed CLO Attainment Report</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>CLO Code</th>
+                            <th>Description</th>
+                            <th>Students Assessed</th>
+                            <th>Avg. Score</th>
+                            <th>Attainment %</th>
+                            <th>Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if clo_attainment %}
+                            {% for clo in clo_attainment %}
+                            <tr>
+                                <td><span class="badge bg-primary">{{ clo.clo_code }}</span></td>
+                                <td>{{ clo.clo_description[:60] }}...</td>
+                                <td>{{ clo.students_assessed }}</td>
+                                <td>{{ clo.average_score|round(2) }}</td>
+                                <td>
+                                    <strong class="text-{{ 'success' if clo.attainment_percentage >= 75 else 'primary' if clo.attainment_percentage >= 60 else 'warning' if clo.attainment_percentage >= 50 else 'danger' }}">
+                                        {{ clo.attainment_percentage|round(2) }}%
+                                    </strong>
+                                </td>
+                                <td>
+                                    <span class="badge {% if clo.attainment_percentage >= 75 %}attainment-highly{% elif clo.attainment_percentage >= 60 %}attainment-attained{% elif clo.attainment_percentage >= 50 %}attainment-partially{% else %}attainment-not{% endif %}">
+                                        {{ clo.attainment_level|title }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Section (Optional) -->
+    {% if clo_attainment %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-bar-chart"></i> CLO Attainment Visualization</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="cloAttainmentChart" height="80"></canvas>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+{% if clo_attainment %}
+<script>
+// Prepare chart data
+const chartData = {
+    labels: [{% for clo in clo_attainment %}'{{ clo.clo_code }}'{% if not loop.last %},{% endif %}{% endfor %}],
+    values: [{% for clo in clo_attainment %}{{ clo.attainment_percentage|round(2) }}{% if not loop.last %},{% endif %}{% endfor %}]
+};
+
+renderAttainmentChart('cloAttainmentChart', chartData);
+</script>
+{% endif %}
+{% endblock %}
+{% endblock %}

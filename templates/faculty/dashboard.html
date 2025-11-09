@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Faculty Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4 px-4">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <h2 class="mb-2">
+            <i class="bi bi-person-workspace text-gradient"></i> Faculty Dashboard
+        </h2>
+        <p class="text-muted">Manage your courses, CLOs, and assessments</p>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <h3>{{ courses|length }}</h3>
+                <p><i class="bi bi-book"></i> Assigned Courses</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card purple">
+                <h3>{{ clos_count or 0 }}</h3>
+                <p><i class="bi bi-list-check"></i> Total CLOs</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card green">
+                <h3>{{ assessments_count or 0 }}</h3>
+                <p><i class="bi bi-clipboard-check"></i> Assessments</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- My Courses -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-mortarboard"></i> My Courses</h5>
+            <input type="text" class="form-control w-25" placeholder="Search courses..." 
+                   data-table-search="courses-table">
+        </div>
+        <div class="card-body">
+            {% if courses %}
+            <div class="row g-3">
+                {% for course in courses %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ course.course_code }}</h5>
+                            <p class="card-text text-muted">{{ course.course_name }}</p>
+                            <div class="d-flex justify-content-between text-muted small mb-3">
+                                <span><i class="bi bi-calendar"></i> Sem {{ course.semester }}</span>
+                                <span><i class="bi bi-star-fill"></i> {{ course.credit_hours }} Credits</span>
+                            </div>
+                            <div class="btn-group w-100" role="group">
+                                <a href="{{ url_for('faculty_course_clos', course_id=course.course_id) }}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="bi bi-list-ul"></i> CLOs
+                                </a>
+                                <a href="{{ url_for('faculty_assessments', course_id=course.course_id) }}" 
+                                   class="btn btn-sm btn-success">
+                                    <i class="bi bi-clipboard"></i> Assess
+                                </a>
+                                <a href="{{ url_for('faculty_reports', course_id=course.course_id) }}" 
+                                   class="btn btn-sm btn-info">
+                                    <i class="bi bi-graph-up"></i> Report
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                <p class="mt-3">No courses assigned yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

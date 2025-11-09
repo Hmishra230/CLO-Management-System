@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Login - CLO Management System{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <div class="text-center mb-4">
+            <i class="bi bi-mortarboard-fill" style="font-size: 4rem; background: linear-gradient(135deg, var(--accent-green), var(--accent-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+            <h2 class="mt-3 fw-bold">Welcome Back</h2>
+            <p class="text-muted">Sign in to CLO Management System</p>
+        </div>
+
+        <form method="POST" action="{{ url_for('login') }}" class="needs-validation" novalidate>
+            <div class="mb-4">
+                <label for="username" class="form-label">
+                    <i class="bi bi-person-fill text-primary"></i> Username
+                </label>
+                <input type="text" class="form-control form-control-lg" id="username" name="username" 
+                       placeholder="Enter your username" required autofocus>
+                <div class="invalid-feedback">
+                    Please enter your username.
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label for="password" class="form-label">
+                    <i class="bi bi-lock-fill text-primary"></i> Password
+                </label>
+                <input type="password" class="form-control form-control-lg" id="password" name="password" 
+                       placeholder="Enter your password" required>
+                <div class="invalid-feedback">
+                    Please enter your password.
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-3 mb-3">
+                <i class="bi bi-box-arrow-in-right"></i> Sign In
+            </button>
+        </form>
+
+        <div class="text-center mt-4 pt-4" style="border-top: 1px solid var(--border-color);">
+            <p class="text-muted mb-3"><small><strong>Demo Credentials</strong></small></p>
+            <div class="row g-2">
+                <div class="col-4">
+                    <div class="card bg-primary bg-opacity-10 border-0">
+                        <div class="card-body p-2">
+                            <small class="d-block fw-bold text-primary">Admin</small>
+                            <small class="d-block text-muted">admin</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card bg-success bg-opacity-10 border-0">
+                        <div class="card-body p-2">
+                            <small class="d-block fw-bold text-success">Faculty</small>
+                            <small class="d-block text-muted">faculty1</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card bg-info bg-opacity-10 border-0">
+                        <div class="card-body p-2">
+                            <small class="d-block fw-bold text-info">Student</small>
+                            <small class="d-block text-muted">student1</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <p class="text-muted mt-2 mb-0">
+                <small>Password for all: <code>password</code> (as per your DB)</small>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
